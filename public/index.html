@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Sheets Viewer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f6fa;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 { font-size: 1.1rem; font-weight: 600; }
+
+    #status {
+      margin-left: auto;
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    #status.error { background: #fdecea; color: #c62828; }
+    #status.loading { background: #fff8e1; color: #f57f17; }
+    #status.hidden { display: none; }
+
+    .toolbar {
+      padding: 12px 24px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .toolbar label { font-size: 0.85rem; color: #555; }
+
+    .toolbar input {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      width: 260px;
+    }
+
+    button {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    #reloadBtn { background: #1a73e8; color: #fff; }
+    #reloadBtn:hover { background: #1558b0; }
+
+    .wrapper {
+      padding: 0 24px 24px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      font-size: 0.83rem;
+    }
+
+    thead tr { background: #f0f4ff; }
+
+    th {
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+      border-bottom: 2px solid #dde3f0;
+      color: #3c4567;
+    }
+
+    th:first-child { color: #999; font-weight: 400; width: 48px; }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    td:first-child {
+      color: #aaa;
+      font-size: 0.75rem;
+      text-align: center;
+      user-select: none;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbff; }
+
+    #loading {
+      padding: 48px;
+      text-align: center;
+      color: #888;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Google Sheets Viewer</h1>
+  <span id="status" class="hidden"></span>
+</header>
+
+<div class="toolbar">
+  <label for="rangeInput">Range</label>
+  <input id="rangeInput" type="text" placeholder="Sheet1!A1:Z1000" />
+  <button id="reloadBtn" onclick="loadData()">Load</button>
+</div>
+
+<div class="wrapper">
+  <div id="loading">Enter a range and click Load.</div>
+  <table id="table" style="display:none">
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<script>
+  async function init() {
+    try {
+      const res = await fetch('/config');
+      const { range } = await res.json();
+      if (range) {
+        document.getElementById('rangeInput').value = range;
+        loadData();
+      }
+    } catch (_) {}
+  }
+
+  init();
+
+  function setStatus(msg, type = 'ok') {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = type;
+  }
+
+  function clearStatus() {
+    document.getElementById('status').className = 'hidden';
+  }
+
+  async function loadData() {
+    const range = document.getElementById('rangeInput').value.trim();
+    const url = '/rows' + (range ? `?range=${encodeURIComponent(range)}` : '');
+
+    document.getElementById('loading').textContent = 'Loading…';
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('table').style.display = 'none';
+    setStatus('Loading…', 'loading');
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      renderTable(data.headers, data.rows);
+      setStatus(`${data.total} rows loaded`, 'ok');
+      setTimeout(clearStatus, 2000);
+    } catch (err) {
+      document.getElementById('loading').textContent = 'Failed to load data.';
+      setStatus(err.message, 'error');
+    }
+  }
+
+  function renderTable(headers, rows) {
+    const thead = document.getElementById('thead');
+    const tbody = document.getElementById('tbody');
+
+    thead.innerHTML = '';
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = '<th>#</th>';
+    headers.forEach(h => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+
+    tbody.innerHTML = '';
+    rows.forEach((row, index) => {
+      const tr = document.createElement('tr');
+
+      const numTd = document.createElement('td');
+      numTd.textContent = index + 1;
+      tr.appendChild(numTd);
+
+      headers.forEach(h => {
+        const td = document.createElement('td');
+        td.textContent = row[h] ?? '';
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('table').style.display = 'table';
+  }
+</script>
+
+</body>
+</html>
