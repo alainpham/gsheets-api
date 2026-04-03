@@ -1,0 +1,1157 @@
+apiVersion: dashboard.grafana.app/v2
+kind: Dashboard
+metadata:
+  name: albv6xj
+  generation: 56
+  creationTimestamp: '2026-03-16T23:01:41Z'
+  labels: {}
+  annotations: {}
+spec:
+  annotations:
+    - kind: AnnotationQuery
+      spec:
+        query:
+          kind: DataQuery
+          group: grafana
+          version: v0
+          spec: {}
+          labels:
+            grafana.app/export-label: grafana-1
+        enable: true
+        hide: true
+        iconColor: rgba(0, 211, 255, 1)
+        name: Annotations & Alerts
+        builtIn: true
+  cursorSync: 'Off'
+  description: Track validation progress of POV success criteria across all categories
+  editable: true
+  elements:
+    panel-1:
+      kind: Panel
+      spec:
+        id: 1
+        title: ''
+        description: ''
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries: []
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: text
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              code:
+                language: plaintext
+                showLineNumbers: false
+                showMiniMap: false
+              content: |-
+                <b>
+                  🎯 POV Success Criteria Tracker
+                </b>
+                <p>
+                Monitor the validation progress of your Proof of Value.
+                </p>
+              mode: html
+            fieldConfig:
+              defaults: {}
+              overrides: []
+    panel-10:
+      kind: Panel
+      spec:
+        id: 10
+        title: 📋 Success Criteria Detail
+        description: >-
+          Full list of all success criteria with status, priority, validation
+          method, and notes
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      columns: []
+                      filters: []
+                      format: table
+                      global_query_id: ''
+                      parser: jq-backend
+                      range: false
+                      root_selector: >-
+                        .rows | map({"Category": .Category, "Requirement":
+                        .Requirement, "Priority": .["Priority "], "Method":
+                        .["Validation Method"], "Met": .["Criteria Met "], "Date
+                        Validated": .["Date Validated"], "Validated By":
+                        .["Validated By"], "Grafana Comments": .["Grafana
+                        Comments"],"Comments": .["Comments"]})
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations:
+              - kind: Transformation
+                group: organize
+                spec:
+                  options:
+                    excludeByName: {}
+                    includeByName: {}
+                    indexByName:
+                      Category: 0
+                      Comments: 8
+                      Complexity: 9
+                      Date Validated: 5
+                      Grafana Comments: 7
+                      Met: 4
+                      Method: 2
+                      Priority: 3
+                      Requirement: 1
+                      Validated By: 6
+                    renameByName: {}
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: table
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              cellHeight: md
+              enablePagination: false
+              showHeader: true
+              sortBy:
+                - desc: false
+                  displayName: Priority
+            fieldConfig:
+              defaults:
+                unit: string
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: green
+                color:
+                  mode: thresholds
+                custom:
+                  align: left
+                  cellOptions:
+                    type: auto
+                  filterable: true
+                  footer:
+                    reducers: []
+                  inspect: false
+                  wrapHeaderText: true
+                  wrapText: true
+              overrides:
+                - matcher:
+                    id: byName
+                    options: Requirement
+                  properties:
+                    - id: custom.width
+                      value: 300
+                    - id: custom.wrapText
+                      value: true
+                - matcher:
+                    id: byName
+                    options: Category
+                  properties:
+                    - id: custom.width
+                      value: 181
+                - matcher:
+                    id: byName
+                    options: Priority
+                  properties:
+                    - id: custom.width
+                      value: 127
+                    - id: custom.cellOptions
+                      value:
+                        type: color-background
+                    - id: mappings
+                      value:
+                        - options:
+                            High:
+                              color: '#F2495C'
+                              index: 0
+                              text: 🔴 High
+                            Low:
+                              color: '#73BF69'
+                              index: 2
+                              text: 🟢 Low
+                            Medium:
+                              color: '#FF9830'
+                              index: 1
+                              text: 🟡 Medium
+                          type: value
+                    - id: color
+                      value:
+                        mode: thresholds
+                - matcher:
+                    id: byName
+                    options: Met
+                  properties:
+                    - id: custom.width
+                      value: 90
+                    - id: custom.cellOptions
+                      value:
+                        type: color-background
+                    - id: mappings
+                      value:
+                        - options:
+                            '':
+                              color: '#FF9830'
+                              index: 2
+                              text: ⏳ Pending
+                            'No':
+                              color: '#F2495C'
+                              index: 1
+                              text: ❌ No
+                            'Yes':
+                              color: '#73BF69'
+                              index: 0
+                              text: ✅ Yes
+                          type: value
+                - matcher:
+                    id: byName
+                    options: Method
+                  properties:
+                    - id: custom.width
+                      value: 155
+                - matcher:
+                    id: byName
+                    options: Notes
+                  properties:
+                    - id: custom.wrapText
+                      value: true
+                    - id: custom.width
+                      value: 220
+                - matcher:
+                    id: byName
+                    options: Date Validated
+                  properties:
+                    - id: custom.width
+                      value: 165
+    panel-11:
+      kind: Panel
+      spec:
+        id: 11
+        title: ❌ Criteria Not Met
+        description: ''
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      columns: []
+                      filters: []
+                      format: table
+                      global_query_id: ''
+                      parser: jq-backend
+                      range: false
+                      root_selector: >-
+                        .rows | [.[] | select(.["Criteria Met "] == "No")] |
+                        length
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: stat
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              colorMode: background
+              graphMode: none
+              justifyMode: center
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: value_and_name
+              wideLayout: true
+            fieldConfig:
+              defaults:
+                displayName: Criteria Not Met
+                unit: short
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: green
+                    - value: 1
+                      color: red
+                color:
+                  mode: thresholds
+                  fixedColor: red
+                noValue: '0'
+              overrides: []
+    panel-12:
+      kind: Panel
+      spec:
+        id: 12
+        title: ''
+        description: ''
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries: []
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: text
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              code:
+                language: plaintext
+                showLineNumbers: false
+                showMiniMap: false
+              content: >
+                **🔗 Useful Links**
+
+                <br>
+
+                🚀 [Start Instrumenting Infra &
+                Apps](/connections/add-new-connection)
+
+                |
+
+                🪂 [Creating SLOs](/a/grafana-slo-app/manage-slos)
+
+                |
+
+                🔒 [PDC for internal
+                datasources](/connections/private-data-source-connections)
+
+                |
+
+                🗺️ [Success Criteria
+                Sheet](https://docs.google.com/) 
+
+                |
+
+                📈 [Sizing
+                Sheet](https://docs.google.com/)
+
+                |
+
+                📚 [PoV Doc
+                Slides](https://docs.google.com/)
+              mode: markdown
+            fieldConfig:
+              defaults: {}
+              overrides: []
+    panel-13:
+      kind: Panel
+      spec:
+        id: 13
+        title: ''
+        description: ''
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries: []
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: text
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              code:
+                language: plaintext
+                showLineNumbers: false
+                showMiniMap: false
+              content: >
+                <img
+                src="https://upload.wikimedia.org/wikipedia/commons/a/a1/Grafana_logo.svg"
+                height="50x">
+              mode: html
+            fieldConfig:
+              defaults: {}
+              overrides: []
+    panel-2:
+      kind: Panel
+      spec:
+        id: 2
+        title: Total Requirements
+        description: ''
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      format: table
+                      parser: jq-backend
+                      range: false
+                      root_selector: .total
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: stat
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              colorMode: background
+              graphMode: none
+              justifyMode: center
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: value_and_name
+              wideLayout: true
+            fieldConfig:
+              defaults:
+                displayName: Total Requirements
+                unit: short
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: green
+                    - value: 80
+                      color: red
+                color:
+                  mode: fixed
+                  fixedColor: '#5794F2'
+                noValue: '0'
+              overrides: []
+    panel-4:
+      kind: Panel
+      spec:
+        id: 4
+        title: ✅ Criteria Validated
+        description: ''
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      columns: []
+                      filters: []
+                      format: table
+                      global_query_id: ''
+                      parser: jq-backend
+                      range: false
+                      root_selector: >-
+                        .rows | [.[] | select(.["Criteria Met "] == "Yes")] |
+                        length
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: stat
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              colorMode: background
+              graphMode: none
+              justifyMode: center
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: value_and_name
+              wideLayout: true
+            fieldConfig:
+              defaults:
+                displayName: Criteria Validated
+                unit: short
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: green
+                    - value: 80
+                      color: red
+                color:
+                  mode: fixed
+                  fixedColor: '#73BF69'
+                noValue: '0'
+              overrides: []
+    panel-5:
+      kind: Panel
+      spec:
+        id: 5
+        title: ⏳ Pending Validation
+        description: ''
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      format: table
+                      parser: jq-backend
+                      range: false
+                      root_selector: >-
+                        .rows | [.[] | select(.["Criteria Met "] == "")] |
+                        length
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: stat
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              colorMode: background
+              graphMode: none
+              justifyMode: center
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: value_and_name
+              wideLayout: true
+            fieldConfig:
+              defaults:
+                displayName: Pending Validation
+                unit: short
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: green
+                    - value: 80
+                      color: red
+                color:
+                  mode: fixed
+                  fixedColor: '#FF9830'
+                noValue: '0'
+              overrides: []
+    panel-6:
+      kind: Panel
+      spec:
+        id: 6
+        title: Completion
+        description: Percentage of POV success criteria that have been validated
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      format: table
+                      parser: jq-backend
+                      range: false
+                      root_selector: >-
+                        .rows | ([.[] | select(.["Criteria Met "] != "")] |
+                        length) * 100 / length
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: gauge
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              barShape: flat
+              barWidthFactor: 0.5
+              effects:
+                barGlow: false
+                centerGlow: false
+                gradient: false
+              endpointMarker: point
+              minVizHeight: 75
+              minVizWidth: 75
+              orientation: auto
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              segmentCount: 1
+              segmentSpacing: 0.3
+              shape: gauge
+              showThresholdLabels: false
+              showThresholdMarkers: true
+              sizing: auto
+              sparkline: false
+              textMode: auto
+            fieldConfig:
+              defaults:
+                displayName: Completion
+                unit: percent
+                min: 0
+                max: 100
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: '#F2495C'
+                    - value: 30
+                      color: '#FF9830'
+                    - value: 70
+                      color: '#73BF69'
+                color:
+                  mode: thresholds
+              overrides: []
+    panel-7:
+      kind: Panel
+      spec:
+        id: 7
+        title: Requirements by Category
+        description: Number of requirements per category with validation status
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      columns: []
+                      filters: []
+                      format: table
+                      global_query_id: ''
+                      parser: jq-backend
+                      range: false
+                      root_selector: >-
+                        .rows | group_by(.Category) | map({"Category":
+                        .[0].Category, "Total": length, "Validated": ([.[] |
+                        select(.["Criteria Met "] == "Yes")] | length)}) |
+                        sort_by(.Total) | reverse
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: barchart
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              barRadius: 0
+              barWidth: 0.97
+              fullHighlight: false
+              groupWidth: 0.7
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: true
+              orientation: horizontal
+              showValue: always
+              stacking: none
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: none
+              xField: Category
+              xTickLabelRotation: 0
+              xTickLabelSpacing: 0
+            fieldConfig:
+              defaults:
+                unit: short
+                decimals: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: green
+                    - value: 80
+                      color: red
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  fillOpacity: 85
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  lineWidth: 0
+                  scaleDistribution:
+                    type: linear
+                  thresholdsStyle:
+                    mode: 'off'
+              overrides:
+                - matcher:
+                    id: byName
+                    options: Validated
+                  properties:
+                    - id: color
+                      value:
+                        fixedColor: '#73BF69'
+                        mode: fixed
+                - matcher:
+                    id: byName
+                    options: Total
+                  properties:
+                    - id: color
+                      value:
+                        fixedColor: '#5794F2'
+                        mode: fixed
+    panel-8:
+      kind: Panel
+      spec:
+        id: 8
+        title: Priority Distribution
+        description: Count of requirements by priority level
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      format: table
+                      parser: jq-backend
+                      range: false
+                      root_selector: >-
+                        {"High": (.rows | map(select(.["Priority "] == "High"))
+                        | length), "Medium": (.rows | map(select(.["Priority "]
+                        == "Medium")) | length), "Low": (.rows |
+                        map(select(.["Priority "] == "Low")) | length)}
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: bargauge
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              displayMode: gradient
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: false
+              maxVizHeight: 300
+              minVizHeight: 16
+              minVizWidth: 8
+              namePlacement: auto
+              orientation: horizontal
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showUnfilled: true
+              sizing: auto
+              valueMode: color
+            fieldConfig:
+              defaults:
+                unit: short
+                min: 0
+                max: 10
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: green
+                    - value: 80
+                      color: red
+                color:
+                  mode: palette-classic
+              overrides:
+                - matcher:
+                    id: byName
+                    options: High
+                  properties:
+                    - id: color
+                      value:
+                        fixedColor: '#F2495C'
+                        mode: fixed
+                - matcher:
+                    id: byName
+                    options: Medium
+                  properties:
+                    - id: color
+                      value:
+                        fixedColor: '#FF9830'
+                        mode: fixed
+                - matcher:
+                    id: byName
+                    options: Low
+                  properties:
+                    - id: color
+                      value:
+                        fixedColor: '#73BF69'
+                        mode: fixed
+    panel-9:
+      kind: Panel
+      spec:
+        id: 9
+        title: Validation Method Distribution
+        description: >-
+          How each requirement will be validated (PoV, Demo, Workshop,
+          Documentation)
+        links: []
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  query:
+                    kind: DataQuery
+                    group: yesoreyeram-infinity-datasource
+                    version: v0
+                    spec:
+                      app: grafana-assistant-app
+                      format: table
+                      parser: jq-backend
+                      range: false
+                      root_selector: >-
+                        {"PoV": (.rows | map(select(.["Validation Method"] |
+                        contains("PoV"))) | length), "Arch & Design": (.rows |
+                        map(select(.["Validation Method"] |
+                        contains("Architecture"))) | length), "Workshop": (.rows
+                        | map(select(.["Validation Method"] == "Workshop")) |
+                        length), "Demo": (.rows | map(select(.["Validation
+                        Method"] == "Demo")) | length)}
+                      source: url
+                      type: json
+                      url: http://172.17.0.1:8080/rows
+                      url_options:
+                        data: ''
+                        method: GET
+                        params: []
+                    labels:
+                      grafana.app/export-label: yesoreyeram-infinity-datasource-1
+                  refId: A
+                  hidden: false
+            transformations: []
+            queryOptions: {}
+        vizConfig:
+          kind: VizConfig
+          group: bargauge
+          version: 13.0.0-23069273608.patch3
+          spec:
+            options:
+              displayMode: gradient
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: false
+              maxVizHeight: 300
+              minVizHeight: 16
+              minVizWidth: 8
+              namePlacement: auto
+              orientation: horizontal
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showUnfilled: true
+              sizing: auto
+              valueMode: color
+            fieldConfig:
+              defaults:
+                unit: short
+                min: 0
+                max: 16
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - value: 0
+                      color: green
+                    - value: 80
+                      color: red
+                color:
+                  mode: palette-classic
+              overrides: []
+  layout:
+    kind: GridLayout
+    spec:
+      items:
+        - kind: GridLayoutItem
+          spec:
+            x: 0
+            'y': 0
+            width: 3
+            height: 2
+            element:
+              kind: ElementReference
+              name: panel-13
+        - kind: GridLayoutItem
+          spec:
+            x: 3
+            'y': 0
+            width: 6
+            height: 2
+            element:
+              kind: ElementReference
+              name: panel-1
+        - kind: GridLayoutItem
+          spec:
+            x: 9
+            'y': 0
+            width: 15
+            height: 2
+            element:
+              kind: ElementReference
+              name: panel-12
+        - kind: GridLayoutItem
+          spec:
+            x: 0
+            'y': 2
+            width: 3
+            height: 8
+            element:
+              kind: ElementReference
+              name: panel-6
+        - kind: GridLayoutItem
+          spec:
+            x: 3
+            'y': 2
+            width: 6
+            height: 8
+            element:
+              kind: ElementReference
+              name: panel-7
+        - kind: GridLayoutItem
+          spec:
+            x: 9
+            'y': 2
+            width: 3
+            height: 3
+            element:
+              kind: ElementReference
+              name: panel-2
+        - kind: GridLayoutItem
+          spec:
+            x: 12
+            'y': 2
+            width: 3
+            height: 3
+            element:
+              kind: ElementReference
+              name: panel-5
+        - kind: GridLayoutItem
+          spec:
+            x: 15
+            'y': 2
+            width: 6
+            height: 3
+            element:
+              kind: ElementReference
+              name: panel-4
+        - kind: GridLayoutItem
+          spec:
+            x: 21
+            'y': 2
+            width: 3
+            height: 3
+            element:
+              kind: ElementReference
+              name: panel-11
+        - kind: GridLayoutItem
+          spec:
+            x: 9
+            'y': 5
+            width: 7
+            height: 5
+            element:
+              kind: ElementReference
+              name: panel-8
+        - kind: GridLayoutItem
+          spec:
+            x: 16
+            'y': 5
+            width: 8
+            height: 5
+            element:
+              kind: ElementReference
+              name: panel-9
+        - kind: GridLayoutItem
+          spec:
+            x: 0
+            'y': 10
+            width: 24
+            height: 10
+            element:
+              kind: ElementReference
+              name: panel-10
+  links: []
+  liveNow: false
+  preload: false
+  tags: []
+  timeSettings:
+    timezone: browser
+    from: now-15m
+    to: now
+    autoRefresh: ''
+    autoRefreshIntervals:
+      - 5s
+      - 10s
+      - 30s
+      - 1m
+      - 5m
+      - 15m
+      - 30m
+      - 1h
+      - 2h
+      - 1d
+    hideTimepicker: false
+    fiscalYearStartMonth: 0
+  title: POV Execution Landing Page
+  variables: []
