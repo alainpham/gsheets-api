@@ -86,7 +86,7 @@ docker push alainpham/gsheets-api
 The container needs access to your `.env` file and `service-account.json` key, which are excluded from the image for security. Mount them at runtime:
 
 ```bash
-docker run -p 172.17.0.1:8080:8080 \
+docker run -d -p 172.17.0.1:8080:8080 \
   --name gsheets-api \
   --env-file .env \
   -v $(pwd)/service-account.json:/app/service-account.json:ro \
