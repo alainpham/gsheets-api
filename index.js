@@ -8,7 +8,9 @@ import { spec } from './openapi.js';
 dotenv.config();
 
 const PORT = process.env.PORT || 8080;
-const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+const rawSpreadsheetId = process.env.SPREADSHEET_ID || '';
+const idMatch = rawSpreadsheetId.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+const SPREADSHEET_ID = idMatch ? idMatch[1] : rawSpreadsheetId;
 const RANGE = process.env.RANGE || '';
 const KEY_FILE = process.env.GOOGLE_KEY_FILE || 'service-account.json';
 
@@ -121,8 +123,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
-app.get('/openapi.json', (req, res) => res.json(spec));
-app.get('/config', (req, res) => {
+app.get('/openapi.json', (_req, res) => res.json(spec));
+app.get('/config', (_req, res) => {
   let effectiveRange = RANGE;
   if (!RANGE && autoDetectCache) {
     const { sheetName, headerRow, headers, rows, startCol } = autoDetectCache;
