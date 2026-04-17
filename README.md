@@ -1,22 +1,31 @@
-# Google Sheets REST API
+# Google Sheets REST API For Grafana PoV Tracker
 
 A Node.js REST API to query rows from a Google Sheet using a Service Account.
+It can be used for example to track the progress of a technical PoV with Grafana Dashboards
+![PoC tracking dashboard](/assets/dashboard.png)
+
+## Architecture
+
+![Architecture](/assets/arch.png)
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 18+ or Docker on an Linux Machine
 - A Google Cloud project with the **Google Sheets API** enabled
 - A Google Service Account with a JSON key
+- A Grafana Cloud Account
 
 ## Setup
 
-### 1. Enable Google Sheets API
+### 1. Enable Google Sheets API (if not enabled yet on the org)
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Navigate to **APIs & Services → Library**
 3. Search for **Google Sheets API** and enable it
 
 ### 2. Create a Service Account
+
+![Service Account for Google Sheet Access](/assets/gcp-iam-service-account.png)
 
 1. Go to **IAM & Admin → Service Accounts**
 2. Click **Create Service Account**, give it a name, and click **Done**
@@ -29,6 +38,14 @@ A Node.js REST API to query rows from a Google Sheet using a Service Account.
 Open your Google Sheet and share it with the service account email (e.g. `my-sa@project.iam.gserviceaccount.com`), granting **Viewer** access.
 
 ### 4. Configure environment
+
+Clone this repo
+
+```bash
+git clone https://github.com/alainpham/gsheets-api
+```
+
+Configure parameters
 
 ```bash
 cp .env.example .env
@@ -51,37 +68,7 @@ GOOGLE_KEY_FILE=service-account.json
 PORT=8080
 ```
 
-### 5. Install dependencies
-
-```bash
-npm install
-```
-
-## Running the API
-
-```bash
-npm start
-```
-
-The server starts at `http://localhost:8080`.
-
----
-
-## Docker
-
-### Build the image
-
-```bash
-docker build -t alainpham/gsheets-api .
-```
-
-### Push to Docker Hub
-
-```bash
-docker push alainpham/gsheets-api
-```
-
-### Run the container
+### 5. Run the container
 
 The container needs access to your `.env` file and `service-account.json` key, which are excluded from the image for security. Mount them at runtime:
 
@@ -97,13 +84,27 @@ The API will be available at `http://localhost:8080`.
 
 > **Note:** The `service-account.json` path inside the container must match the `GOOGLE_KEY_FILE` value in your `.env` (default: `service-account.json`).
 
-| URL | Description |
-|-----|-------------|
-| `http://localhost:8080` | UI — view sheet data in a table |
-| `http://localhost:8080/docs` | Swagger UI |
-| `http://localhost:8080/openapi.json` | Raw OpenAPI spec (JSON) |
+## Available Endpoints
 
----
+| URL                                   | Description                       |
+|---------------------------------------|-----------------------------------|
+| `http://localhost:8080`               | UI — view sheet data in table     |
+| `http://localhost:8080/docs`          | Swagger UI                        |
+| `http://localhost:8080/openapi.json`  | Raw OpenAPI spec (JSON)           |
+
+## Docker builds
+
+### Build the image
+
+```bash
+docker build -t alainpham/gsheets-api .
+```
+
+### Push to Docker Hub
+
+```bash
+docker push alainpham/gsheets-api
+```
 
 ## API Reference
 
