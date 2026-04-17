@@ -13,7 +13,7 @@ It can be used for example to track the progress of a technical PoV with Grafana
 - Node.js 18+ or Docker on an Linux Machine
 - A Google Cloud project with the **Google Sheets API** enabled
 - A Google Service Account with a JSON key
-- A Grafana Cloud Account
+- A Grafana Cloud Account with an apikey to create dashboards & datasources & pdcs
 
 ## Setup
 
@@ -37,7 +37,34 @@ It can be used for example to track the progress of a technical PoV with Grafana
 
 Open your Google Sheet and share it with the service account email (e.g. `my-sa@project.iam.gserviceaccount.com`), granting **Viewer** access.
 
-### 4. Configure environment
+Your sheet should have a tab with the following columns (the app will auto-detect the table by locating the `Requirement` header). The `Criteria Met` column accepts `Yes`, `No`, or `Partial`. The `Priority` column accepts `High`, `Medium`, or `Low`.
+
+| Category | Business Objective Alignment | Requirement | Validation Method | Priority | Criteria Met | Date Validated | Validated By | Grafana Comments | Comments |
+|----------|------------------------------|-------------|-------------------|----------|--------------|----------------|--------------|------------------|----------|
+| Data Pipeline, Reversibility | Reduce operational efforts | Leverage Open Standards to collect logs, metrics, traces & profiles and guarantee full vendor agnosticity | PoV | Medium | Yes | 2026-04-17 | | | |
+| Application Observability, Kubernetes Monitoring | Reduce operational efforts, Reduce MTTR | Turn key solution for Kubernetes monitoring, APM & Frontend monitoring, and most well known technologies (out of the box dashboards, alerts, configs) | PoV | High | Yes | 2026-04-17 | | | |
+
+### 4. Create a Grafana Cloud Access Policy token
+
+A single Cloud Access Policy token is used by the provisioning script for all operations (plugins, PDC, datasources, dashboards).
+
+1. Go to [grafana.com](https://grafana.com) and sign in
+2. Click your avatar (top-right) → **My Account**
+3. In the left sidebar go to **Security → Access Policies**
+4. Click **Add access policy**, give it a name (e.g. `pov-provisioner`), then under **Realms** select your organisation and your stack
+5. Add the following scopes:
+
+   | Scope | Purpose |
+   |-------|---------|
+   | `dashboards:read` / `dashboards:write` | Provision dashboards |
+   | `datasources:read` / `datasources:write` | Create datasources |
+   | `pdc:read` / `pdc:write` | Check for and register the PDC network |
+
+6. Click **Create** → **Add token**, copy the token and save it as `GRAFANA_CLOUD_ACCESS_POLICY_TOKEN` in your `.env`
+
+> The **cluster** name (e.g. `prod-eu-west-2`) and **numeric stack ID** are visible on the stack's detail page at grafana.com/orgs/`<org>`/stacks. Save them as `GRAFANA_CLUSTER` and `GRAFANA_STACK_ID`.
+
+### 5. Configure environment
 
 Clone this repo
 
@@ -51,24 +78,31 @@ Configure parameters
 cp .env.example .env
 ```
 
-Edit `.env`:
+Edit `.env` and fill in the variables below.
 
-```env
-# The ID from your Google Sheet URL:
-# https://docs.google.com/spreadsheets/d/<SPREADSHEET_ID>/edit
-SPREADSHEET_ID=your_spreadsheet_id_here
+#### Google Sheets
 
-# Default sheet range in A1 notation
-RANGE=Sheet1!A1:Z1000
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SPREADSHEET_ID` | Yes | The ID from your sheet URL: `https://docs.google.com/spreadsheets/d/<ID>/edit` |
+| `RANGE` | No | A1 notation range, e.g. `Success Criteria!B15:P36`. Leave empty to auto-detect the table by scanning for a `Requirement` column header |
+| `GOOGLE_KEY_FILE` | No | Path to the service account JSON key (default: `service-account.json`) |
+| `PORT` | No | HTTP port (default: `8080`) |
 
-# Path to your service account key file
-GOOGLE_KEY_FILE=service-account.json
+#### Grafana Cloud — used by `setup-grafana-cloud.sh`
 
-# Server port (optional, default: 8080)
-PORT=8080
-```
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GRAFANA_CLOUD_ACCESS_POLICY_TOKEN` | Yes | Cloud Access Policy token from grafana.com → Security → Access Policies (scopes: `dashboards:read/write`, `datasources:read/write`, `pdc:read/write`) |
+| `GRAFANA_STACK_SLUG` | Yes | Stack subdomain — for `https://myorg.grafana.net` the slug is `myorg` |
+| `GRAFANA_STACK_ID` | Yes | Numeric stack ID, visible in grafana.com/orgs/`<org>`/stacks |
+| `GRAFANA_STACK_URL` | Yes | Full URL of your Grafana Cloud stack, e.g. `https://myorg.grafana.net` |
+| `GRAFANA_CLUSTER` | Yes | Grafana Cloud cluster, e.g. `prod-eu-west-2` (visible in stack settings on grafana.com) |
+| `PDC_NETWORK_NAME` | No | Name for the PDC network (default: `pov-pdc`) |
+| `DATASOURCE_NAME` | No | Infinity datasource name in Grafana (default: `pov-success`) |
+| `GSHEETS_API_URL` | No | URL where the container is reachable from Grafana Cloud via PDC (default: `http://172.17.0.1:8080`) |
 
-### 5. Run the container
+### 6. Run the container
 
 The container needs access to your `.env` file and `service-account.json` key, which are excluded from the image for security. Mount them at runtime:
 

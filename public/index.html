@@ -142,14 +142,18 @@
 
 <script>
   async function init() {
+    const input = document.getElementById('rangeInput');
     try {
       const res = await fetch('/config');
-      const { range } = await res.json();
+      const { range, autoDetected } = await res.json();
       if (range) {
-        document.getElementById('rangeInput').value = range;
-        loadData();
+        input.value = range;
+        input.title = autoDetected ? 'Range auto-detected from sheet' : 'Range set via RANGE env variable';
+      } else {
+        input.placeholder = 'auto-detecting…';
       }
     } catch (_) {}
+    loadData();
   }
 
   init();
