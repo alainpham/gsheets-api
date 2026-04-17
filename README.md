@@ -17,13 +17,23 @@ It can be used for example to track the progress of a technical PoV with Grafana
 
 ## Setup
 
-### 1. Enable Google Sheets API (if not enabled yet on the org)
+### 1. Clone the repository
+
+Clone this repo and create your `.env` file — you will fill in the values during the following steps:
+
+```bash
+git clone https://github.com/alainpham/gsheets-api
+cd gsheets-api
+cp .env.example .env
+```
+
+### 2. Enable Google Sheets API (if not enabled yet on the org)
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Navigate to **APIs & Services → Library**
 3. Search for **Google Sheets API** and enable it
 
-### 2. Create a Service Account
+### 3. Create a Service Account
 
 ![Service Account for Google Sheet Access](/assets/gcp-iam-service-account.png)
 
@@ -33,7 +43,7 @@ It can be used for example to track the progress of a technical PoV with Grafana
 4. Click **Add Key → Create new key → JSON**
 5. Save the downloaded file as `service-account.json` in the project root
 
-### 3. Share your Google Sheet
+### 4. Share your Google Sheet
 
 Open your Google Sheet and share it with the service account email (e.g. `my-sa@project.iam.gserviceaccount.com`), granting **Viewer** access.
 
@@ -44,7 +54,7 @@ Your sheet should have a tab with the following columns (the app will auto-detec
 | Data Pipeline, Reversibility | Reduce operational efforts | Leverage Open Standards to collect logs, metrics, traces & profiles and guarantee full vendor agnosticity | PoV | Medium | Yes | 2026-04-17 | | | |
 | Application Observability, Kubernetes Monitoring | Reduce operational efforts, Reduce MTTR | Turn key solution for Kubernetes monitoring, APM & Frontend monitoring, and most well known technologies (out of the box dashboards, alerts, configs) | PoV | High | Yes | 2026-04-17 | | | |
 
-### 4. Create a Grafana Cloud Access Policy token
+### 5. Create a Grafana Cloud Access Policy token
 
 A single Cloud Access Policy token is used by the provisioning script for all operations (plugins, PDC, datasources, dashboards).
 
@@ -64,21 +74,9 @@ A single Cloud Access Policy token is used by the provisioning script for all op
 
 > The **cluster** name (e.g. `prod-eu-west-2`) and **numeric stack ID** are visible on the stack's detail page at grafana.com/orgs/`<org>`/stacks. Save them as `GRAFANA_CLUSTER` and `GRAFANA_STACK_ID`.
 
-### 5. Configure environment
+### 6. Configure environment
 
-Clone this repo
-
-```bash
-git clone https://github.com/alainpham/gsheets-api
-```
-
-Configure parameters
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and fill in the variables below.
+Open `.env` in your editor and fill in the variables below:
 
 #### Google Sheets
 
@@ -102,7 +100,7 @@ Edit `.env` and fill in the variables below.
 | `DATASOURCE_NAME` | No | Infinity datasource name in Grafana (default: `pov-success`) |
 | `GSHEETS_API_URL` | No | URL where the container is reachable from Grafana Cloud via PDC (default: `http://172.17.0.1:8080`) |
 
-### 6. Run the container
+### 7. Run the container
 
 The container needs access to your `.env` file and `service-account.json` key, which are excluded from the image for security. Mount them at runtime:
 
