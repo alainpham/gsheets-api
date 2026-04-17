@@ -10,7 +10,7 @@ It can be used for example to track the progress of a technical PoV with Grafana
 
 ## Prerequisites
 
-- Node.js 18+ or Docker on an Linux Machine
+- Node.js 24+ or Docker on an Linux Machine
 - A Google Cloud project with the **Google Sheets API** enabled
 - A Google Service Account with a JSON key
 - A Grafana Cloud Account with an apikey to create dashboards & datasources & pdcs
