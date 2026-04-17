@@ -1,9 +1,11 @@
 #!/bin/bash
 # Provisions Grafana Cloud for the POV Success Criteria Tracker:
-#   1. Installs the Infinity plugin on the stack
-#   2. Registers a PDC (Private Data Source Connect) network and prints the agent run command
-#   3. Creates the "pov-success" Infinity datasource
-#   4. Provisions the dashboard from grafana-dashboard/pov-execution-landing-page.yaml
+#   1. Registers a PDC (Private Data Source Connect) network and prints the agent run command
+#   2. Creates the "pov-success" Infinity datasource
+#   3. Provisions the dashboard from grafana-dashboard/pov-execution-landing-page.yaml
+#
+# Prerequisite: install the Infinity plugin manually before running this script:
+#   Grafana Cloud UI → Connections → Add new connection → search "Infinity" → Install
 
 set -euo pipefail
 
@@ -24,6 +26,7 @@ fi
 # ── Validate required variables ───────────────────────────────────────────────
 for var in \
   GRAFANA_CLOUD_ACCESS_POLICY_TOKEN \
+  GRAFANA_SA_TOKEN \
   GRAFANA_STACK_SLUG \
   GRAFANA_STACK_ID \
   GRAFANA_STACK_URL \
@@ -50,7 +53,7 @@ gcloud_request() {
 stack_request() {
   local method="$1" path="$2"; shift 2
   curl -s -w "\n%{http_code}" -X "$method" \
-    -H "Authorization: Bearer ${GRAFANA_CLOUD_ACCESS_POLICY_TOKEN}" \
+    -H "Authorization: Bearer ${GRAFANA_SA_TOKEN}" \
     -H "Content-Type: application/json" \
     "${STACK_API}${path}" "$@"
 }
@@ -68,49 +71,12 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Step 1 — Install the Infinity plugin
+# Step 1 — Print PDC agent run command
 # ═══════════════════════════════════════════════════════════════════════════════
-info "Step 1/4 — Installing Infinity plugin on stack '${GRAFANA_STACK_SLUG}'…"
-
-RESP=$(gcloud_request POST "/v1/stacks/${GRAFANA_STACK_SLUG}/plugins" \
-  -d '{"pluginSlug":"yesoreyeram-infinity-datasource"}')
-split_response "$RESP"
-
-case "$HTTP_CODE" in
-  200|201) log "Infinity plugin installed." ;;
-  409)     log "Infinity plugin already installed." ;;
-  *)       warn "Plugin install returned HTTP ${HTTP_CODE}: ${BODY}"
-           warn "Make sure the plugin is installed manually if needed." ;;
-esac
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Step 2 — Register PDC network and print agent run command
-# ═══════════════════════════════════════════════════════════════════════════════
-info "Step 2/4 — Registering PDC network '${PDC_NETWORK_NAME}'…"
-
-RESP=$(gcloud_request POST "/v1/stacks/${GRAFANA_STACK_SLUG}/pdcconfigs" \
-  -d "{\"name\":\"${PDC_NETWORK_NAME}\"}")
-split_response "$RESP"
-
-PDC_AGENT_TOKEN="$GRAFANA_CLOUD_ACCESS_POLICY_TOKEN"   # fallback
-
-case "$HTTP_CODE" in
-  200|201)
-    log "PDC network '${PDC_NETWORK_NAME}' created."
-    # The response may contain a dedicated HMAC/signing key for the agent
-    CANDIDATE=$(echo "$BODY" | python3 -c \
-      "import sys,json; d=json.load(sys.stdin); print(d.get('hmacKey', d.get('token', '')))" 2>/dev/null || true)
-    [ -n "$CANDIDATE" ] && PDC_AGENT_TOKEN="$CANDIDATE"
-    ;;
-  409)
-    log "PDC network '${PDC_NETWORK_NAME}' already exists."
-    ;;
-  *)
-    warn "PDC API returned HTTP ${HTTP_CODE}: ${BODY}"
-    warn "The PDC network may need to be created manually:"
-    warn "  Grafana Cloud UI → Connections → Private data source connect"
-    ;;
-esac
+info "Step 1/3 — PDC agent setup…"
+# The Cloud Access Policy token is used directly as the PDC agent token.
+PDC_AGENT_TOKEN="$GRAFANA_CLOUD_ACCESS_POLICY_TOKEN"
+log "Using Cloud Access Policy token for PDC agent."
 
 echo ""
 echo -e "${YELLOW}━━━ Run this on the same Docker host as the gsheets-api container ━━━${NC}"
@@ -123,9 +89,9 @@ echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Step 3 — Create the Infinity datasource
+# Step 2 — Create the Infinity datasource
 # ═══════════════════════════════════════════════════════════════════════════════
-info "Step 3/4 — Creating Infinity datasource '${DATASOURCE_NAME}'…"
+info "Step 2/3 — Creating Infinity datasource '${DATASOURCE_NAME}'…"
 
 DS_PAYLOAD=$(cat <<JSON
 {
@@ -154,7 +120,7 @@ case "$HTTP_CODE" in
   409)
     warn "Datasource '${DATASOURCE_NAME}' already exists — skipping creation."
     DS_UID=$(curl -s \
-      -H "Authorization: Bearer ${GRAFANA_CLOUD_ACCESS_POLICY_TOKEN}" \
+      -H "Authorization: Bearer ${GRAFANA_SA_TOKEN}" \
       "${STACK_API}/datasources/name/${DATASOURCE_NAME}" | \
       python3 -c "import sys,json; print(json.load(sys.stdin)['uid'])" 2>/dev/null || echo "unknown")
     log "Existing datasource uid=${DS_UID}."
@@ -167,7 +133,7 @@ esac
 # ═══════════════════════════════════════════════════════════════════════════════
 # Step 4 — Provision the dashboard
 # ═══════════════════════════════════════════════════════════════════════════════
-info "Step 4/4 — Provisioning dashboard from ${DASHBOARD_FILE}…"
+info "Step 3/3 — Provisioning dashboard from ${DASHBOARD_FILE}…"
 
 [ -f "$DASHBOARD_FILE" ] || die "Dashboard file not found: ${DASHBOARD_FILE}"
 
@@ -186,7 +152,7 @@ NAMESPACE="stacks-${GRAFANA_STACK_ID}"
 attempt_dashboard() {
   local method="$1" ns="$2" suffix="${3:-}"
   curl -s -w "\n%{http_code}" -X "$method" \
-    -H "Authorization: Bearer ${GRAFANA_CLOUD_ACCESS_POLICY_TOKEN}" \
+    -H "Authorization: Bearer ${GRAFANA_SA_TOKEN}" \
     -H "Content-Type: application/json" \
     --data-binary @"${DASHBOARD_FILE}" \
     "${GRAFANA_STACK_URL}/apis/dashboard.grafana.app/v2/namespaces/${ns}/dashboards${suffix}"

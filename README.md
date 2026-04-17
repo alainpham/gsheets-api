@@ -91,7 +91,8 @@ Open `.env` in your editor and fill in the variables below:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GRAFANA_CLOUD_ACCESS_POLICY_TOKEN` | Yes | Cloud Access Policy token from grafana.com → Security → Access Policies (scopes: `dashboards:read/write`, `datasources:read/write`, `pdc:read/write`) |
+| `GRAFANA_CLOUD_ACCESS_POLICY_TOKEN` | Yes | Cloud Access Policy token from grafana.com → Security → Access Policies (scopes: `pdc:read/write`). Also used as the PDC agent token. |
+| `GRAFANA_SA_TOKEN` | Yes | Service account token with Admin role on the Grafana stack — create at `<stack_url>/org/serviceaccounts`. Used for datasource and dashboard provisioning. |
 | `GRAFANA_STACK_SLUG` | Yes | Stack subdomain — for `https://myorg.grafana.net` the slug is `myorg` |
 | `GRAFANA_STACK_ID` | Yes | Numeric stack ID, visible in grafana.com/orgs/`<org>`/stacks |
 | `GRAFANA_STACK_URL` | Yes | Full URL of your Grafana Cloud stack, e.g. `https://myorg.grafana.net` |
@@ -115,6 +116,30 @@ docker run -d -p 172.17.0.1:8080:8080 \
 The API will be available at `http://localhost:8080`.
 
 > **Note:** The `service-account.json` path inside the container must match the `GOOGLE_KEY_FILE` value in your `.env` (default: `service-account.json`).
+
+### 8. Provision Grafana Cloud
+
+First, install the **Infinity** plugin manually — the Grafana Cloud Management API does not expose a plugin installation endpoint:
+
+> Grafana Cloud UI → **Connections → Add new connection** → search `Infinity` → **Install**
+
+Then, with the container running and the Grafana Cloud variables filled in your `.env`, run the provisioning script:
+
+```bash
+./setup-grafana-cloud.sh
+```
+
+The script will:
+
+1. Register the **PDC network** and print the `docker run` command for the PDC agent — run it on the same host as the container so Grafana Cloud can reach `http://172.17.0.1:8080` through the tunnel
+2. Create the **`pov-success` Infinity datasource** pointing to the local API
+3. Provision the **POV Execution Landing Page** dashboard
+
+Once complete, the script prints the dashboard URL:
+
+```
+https://<slug>.grafana.net/d/<dashboard-id>
+```
 
 ## Available Endpoints
 
